@@ -9,5 +9,5 @@ package org.interfaces;
  */
 public interface MyCallBack
 {
-    void execute();
+    boolean execute();
 }

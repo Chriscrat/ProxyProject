@@ -1,4 +1,4 @@
-package org.impl;
+package org.utils;
 
 import org.interfaces.MyCallBack;
 
@@ -12,12 +12,12 @@ public class StreamRedirecter extends Thread
     private OutputStream out;
     private InputStream in;
     private AtomicBoolean run = new AtomicBoolean(true);
-    private MyCallBack call;
+    private MyCallBack callback;
 
-    public StreamRedirecter(OutputStream out, InputStream in, MyCallBack call) {
+    public StreamRedirecter(OutputStream out, InputStream in, MyCallBack callback) {
         this.out = out;
         this.in = in;
-        this.call = call;
+        this.callback = callback;
     }
 
     @Override
@@ -25,8 +25,6 @@ public class StreamRedirecter extends Thread
     {
         while (run.get())
         {
-            try
-            {
 
                 byte[] buffer = new byte[1024];
                 int len;
@@ -36,23 +34,28 @@ public class StreamRedirecter extends Thread
                 {
                     while ((len = in.read(buffer)) != -1)
                     {
-                        sleep(15);
+
+                        if(len <= 0 && null != callback) {
+                            if(!callback.execute()) {
+                                break;
+                            }
+
+                        }
+
                         out.write(buffer, 0, len);
-
-                        if(len <= 0)
-                            if(call != null)
-                                call.execute();
-
                         System.out.println(String.format("%s : %s", Thread.currentThread().getName(), new String(buffer)));
+
+                        sleep(len > 0 ? 0 : 15);
                     }
                 }
                 catch (IOException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    break;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    break;
                 }
 
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
     }
 
